@@ -1,0 +1,80 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedAdmin() {
+      return isSignedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'kfmughal79@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function isValidPageConfig(data) {
+      return data.keys().hasAll(['title', 'description'])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.description is string && data.description.size() <= 500;
+    }
+
+    function isValidCommitteeList(data) {
+      return data.keys().hasAll(['title', 'monthlyAmount', 'status'])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.monthlyAmount is number && data.monthlyAmount >= 0
+        && data.status in ['active', 'completed', 'paused'];
+    }
+
+    function isValidMember(data) {
+      return data.keys().hasAll(['listId', 'name', 'paymentStatus'])
+        && data.listId is string && data.listId.size() > 0 && data.listId.size() <= 128
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.paymentStatus in ['Paid', 'Pending', 'Overdue'];
+    }
+
+    // Match Rules
+
+    // 1. Page Header Config
+    match /page/{pageId} {
+      allow read: if isSignedIn();
+      allow create, update: if isVerifiedAdmin() && isValidPageConfig(request.resource.data);
+      allow delete: if isVerifiedAdmin();
+    }
+
+    // 2. Committee Lists
+    match /lists/{listId} {
+      allow read: if isSignedIn();
+      allow create, update: if isVerifiedAdmin() && isValidCommitteeList(request.resource.data);
+      allow delete: if isVerifiedAdmin();
+    }
+
+    // 3. Committee Members
+    match /members/{memberId} {
+      allow read: if isSignedIn();
+      allow create, update: if isVerifiedAdmin() && isValidMember(request.resource.data);
+      allow delete: if isVerifiedAdmin();
+    }
+
+    // 4. Visitor Stats Summary
+    match /visitorStats/{uid} {
+      allow read: if isVerifiedAdmin();
+      allow create, update: if isVerifiedAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow delete: if isVerifiedAdmin();
+    }
+
+    // 5. Visitor Detailed Events Log
+    match /visitorEvents/{eventId} {
+      allow read: if isVerifiedAdmin();
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isVerifiedAdmin();
+    }
+
+    // Default Deny Catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

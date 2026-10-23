@@ -1,0 +1,6 @@
+{
+  "name": "Committee Manager",
+  "description": "Private savings pool, committee list, member contribution tracker, and secure visitor analytics for project committee-4b237.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

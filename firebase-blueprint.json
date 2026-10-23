@@ -1,0 +1,229 @@
+{
+  "entities": {
+    "PageConfig": {
+      "title": "Page Configuration",
+      "description": "Customizable page title and header description for the committee app",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Page title displayed at top"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Committee purpose and subtitle info"
+        },
+        "currencySymbol": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "Currency symbol, e.g., PKR, $, AED, Rs."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when header was last updated"
+        },
+        "updatedBy": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of admin who updated settings"
+        }
+      },
+      "required": ["title", "description"]
+    },
+    "CommitteeList": {
+      "title": "Committee List Pool",
+      "description": "A committee pool or saving cycle group",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Name of the committee pool"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Details about payout cycle and rules"
+        },
+        "monthlyAmount": {
+          "type": "number",
+          "description": "Standard monthly contribution amount per member"
+        },
+        "totalMembers": {
+          "type": "number",
+          "description": "Target number of member slots"
+        },
+        "cycleMonths": {
+          "type": "number",
+          "description": "Total duration in months"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Starting month/year e.g. Jan 2026"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "completed", "paused"],
+          "description": "Status of the committee cycle"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "monthlyAmount", "status"]
+    },
+    "CommitteeMember": {
+      "title": "Committee Member",
+      "description": "Member details, contribution amount, payment status, and notes",
+      "type": "object",
+      "properties": {
+        "listId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "ID of parent committee list"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Full name of committee participant"
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Optional phone or contact number"
+        },
+        "monthlyContribution": {
+          "type": "number",
+          "description": "Contribution amount for this specific member"
+        },
+        "payoutMonth": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Scheduled payout month e.g., Month 3 / March 2026"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["Paid", "Pending", "Overdue"],
+          "description": "Current month's payment status"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Admin or payment notes"
+        },
+        "orderNumber": {
+          "type": "number",
+          "description": "Payout order or slot sequence"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["listId", "name", "paymentStatus"]
+    },
+    "VisitorSummary": {
+      "title": "Visitor Summary Statistics",
+      "description": "Aggregated stats for unique authenticated visitor",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase Auth UID"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Verified email address"
+        },
+        "firstVisit": {
+          "type": "string",
+          "format": "date-time",
+          "description": "First visit timestamp"
+        },
+        "lastVisit": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Most recent visit timestamp"
+        },
+        "totalVisits": {
+          "type": "number",
+          "description": "Total number of recorded sessions"
+        },
+        "recentDevice": {
+          "type": "string",
+          "maxLength": 250,
+          "description": "User agent or device summary"
+        }
+      },
+      "required": ["uid", "firstVisit", "lastVisit", "totalVisits"]
+    },
+    "VisitorEvent": {
+      "title": "Visitor Event Log",
+      "description": "Detailed log entry for an individual page visit",
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase Auth UID"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of visit"
+        },
+        "sessionId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Unique session identifier for deduplication"
+        },
+        "deviceInfo": {
+          "type": "string",
+          "maxLength": 250,
+          "description": "Browser / OS summary"
+        }
+      },
+      "required": ["uid", "timestamp", "sessionId"]
+    }
+  },
+  "firestore": {
+    "page/main": {
+      "schema": { "$ref": "#/entities/PageConfig" },
+      "description": "Global customizable title and description"
+    },
+    "lists/{listId}": {
+      "schema": { "$ref": "#/entities/CommitteeList" },
+      "description": "Committee lists and saving pools"
+    },
+    "members/{memberId}": {
+      "schema": { "$ref": "#/entities/CommitteeMember" },
+      "description": "Committee member records and payment status"
+    },
+    "visitorStats/{uid}": {
+      "schema": { "$ref": "#/entities/VisitorSummary" },
+      "description": "Aggregated statistics per user"
+    },
+    "visitorEvents/{eventId}": {
+      "schema": { "$ref": "#/entities/VisitorEvent" },
+      "description": "Detailed visit log history"
+    }
+  }
+}
